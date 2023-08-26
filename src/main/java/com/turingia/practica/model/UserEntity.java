@@ -32,7 +32,7 @@ public class UserEntity {
     private String email;
 
     @NotBlank @Size(max = 30)
-    private String name;
+    private String username;
 
     @NotBlank
     private String password;

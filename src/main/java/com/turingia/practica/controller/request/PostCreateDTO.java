@@ -24,6 +24,6 @@ public class PostCreateDTO {
     @NotBlank
     private String description;
 
-    @NotBlank
+
     private MultipartFile image;
 }

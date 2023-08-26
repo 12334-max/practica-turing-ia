@@ -8,6 +8,7 @@ import com.turingia.practica.repositories.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Set;
@@ -19,7 +20,11 @@ public class UserController {
     @Autowired
     private UserRepository userRepository;
 
-    @PostMapping("/getUsers")
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    //esta metodo realizar el registro de un usuario y que rol tendra.
+    @PostMapping("/addUser")
     public ResponseEntity<?> create(@Valid @RequestBody UserCreateDTO userCreateDTO){
         Set<RoleEntity> roles = userCreateDTO.getRole().stream()
                         .map(role -> RoleEntity.builder()
@@ -28,8 +33,8 @@ public class UserController {
                 .collect(Collectors.toSet());
 
         UserEntity userEntity = UserEntity.builder()
-                .name(userCreateDTO.getName())
-                .password(userCreateDTO.getPassword())
+                .username(userCreateDTO.getUsername())
+                .password(passwordEncoder.encode(userCreateDTO.getPassword()))
                 .email(userCreateDTO.getEmail())
                 .roles(roles)
                 .build();

@@ -5,12 +5,12 @@ import com.turingia.practica.model.PostEntity;
 import com.turingia.practica.repositories.PostRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.IOException;
@@ -26,7 +26,9 @@ public class PostController {
 
     @Autowired
     private PostRepository postRepository;
-    static final String UPLOAD_DIR = "uploads/";
+    @Value("${file.upload-dir}")
+    private String uploadDir;
+
 
     @GetMapping("/getPosts")
     public List<PostEntity> getPost(){
@@ -34,15 +36,18 @@ public class PostController {
     }
 
     //funcion para agregar nuevos post
-    @PostMapping("/addPost")
-    public ResponseEntity<?> createPost(@Valid @RequestBody PostCreateDTO postCreateDTO) throws IOException {
-        String filename = StringUtils.cleanPath(Objects.requireNonNull(postCreateDTO.getImage().getOriginalFilename()));
-        Path path = Paths.get(UPLOAD_DIR+filename);
-        Files.copy(postCreateDTO.getImage().getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+    @PostMapping(value = "/addPost")
+    public ResponseEntity<String> createPost(@Valid @ModelAttribute PostCreateDTO postCreateDTO) throws IOException {
+        MultipartFile file = postCreateDTO.getImage();
+        String fileName = StringUtils.cleanPath(file.getOriginalFilename());
+        Path filePath = Paths.get(uploadDir, fileName);
+        Files.write(filePath, file.getBytes());
+
         String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
                 .path("/uploads/")
-                .path(filename)
+                .path(fileName)
                 .toUriString();
+
 
         PostEntity postEntity = PostEntity.builder()
                 .title(postCreateDTO.getTitle())
@@ -51,6 +56,12 @@ public class PostController {
                 .image(fileUrl)
                 .build();
         postRepository.save(postEntity);
-        return ResponseEntity.ok(postEntity);
+        return ResponseEntity.ok("Se ha creado el post");
+    }
+
+    @DeleteMapping("/deletePost/{id}")
+    public String delete(@RequestParam Long id){
+        postRepository.deleteById(id);
+        return "Success";
     }
 }
