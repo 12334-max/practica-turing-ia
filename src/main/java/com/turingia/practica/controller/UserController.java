@@ -8,6 +8,7 @@ import com.turingia.practica.repositories.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +26,7 @@ public class UserController {
 
     //esta metodo realizar el registro de un usuario y que rol tendra.
     @PostMapping("/addUser")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> create(@Valid @RequestBody UserCreateDTO userCreateDTO){
         Set<RoleEntity> roles = userCreateDTO.getRole().stream()
                         .map(role -> RoleEntity.builder()

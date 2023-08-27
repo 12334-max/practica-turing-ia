@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -37,6 +38,7 @@ public class PostController {
 
     //funcion para agregar nuevos post
     @PostMapping(value = "/addPost")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<String> createPost(@Valid @ModelAttribute PostCreateDTO postCreateDTO) throws IOException {
         MultipartFile file = postCreateDTO.getImage();
         String fileName = StringUtils.cleanPath(file.getOriginalFilename());
@@ -60,6 +62,7 @@ public class PostController {
     }
 
     @DeleteMapping("/deletePost/{id}")
+    @PreAuthorize("hasRole('USER')")
     public String delete(@RequestParam Long id){
         postRepository.deleteById(id);
         return "Success";

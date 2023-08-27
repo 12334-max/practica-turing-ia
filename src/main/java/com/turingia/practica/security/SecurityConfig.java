@@ -2,27 +2,32 @@ package com.turingia.practica.security;
 
 import com.turingia.practica.jwt.JWTUtils;
 import com.turingia.practica.security.filters.JwtAuthenticationFilter;
-import com.turingia.practica.service.UserServiceImp;
+import com.turingia.practica.service.UserDetailsServiceImp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     @Autowired
     JWTUtils jwtUtils;
     @Autowired
-    UserServiceImp userServiceImp;
+    UserDetailsServiceImp userDetailsServiceImp;
 
+    @Autowired
+    JwtAuthenticationFilter authenticationFilter;
     /*
     * configuracion de acceso a la pagina
     */
@@ -44,6 +49,7 @@ public class SecurityConfig {
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
                 })
                 .addFilter(jwtAuthenticationFilter)
+                .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
@@ -63,7 +69,7 @@ public class SecurityConfig {
     AuthenticationManager authenticationManager(HttpSecurity httpSecurity, PasswordEncoder passwordEncoder) throws Exception {
         return  httpSecurity
                 .getSharedObject(AuthenticationManagerBuilder.class)
-                .userDetailsService(userServiceImp)
+                .userDetailsService(userDetailsServiceImp)
                 .passwordEncoder(passwordEncoder())
                 .and().build();
     }
